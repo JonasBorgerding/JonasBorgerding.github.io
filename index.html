@@ -183,12 +183,40 @@
                         }
 
                 }
+                const HttpInfektionen = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20AND%20(IdLandkreis%3D%2713003%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
+                HttpInfektionen.open('GET', url);
+                HttpInfektionen.send();
+                HttpInfektionen.onreadystatechange = (e) => {
+                    let amount = HttpInfektionen.responseText;
+                    if (HttpInfektionen.readyState == 4 && HttpInfektionen.status == 200)
+                        try{
+                            document.getElementById('rostockStadtNeuinfektionen').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
+                        } catch (e){
+                            document.getElementById('rostockStadtNeuinfektionen').innerText = 'Keine Fälle';
+                        }
+
+                }
+                const HttpTote = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerTodesfall%20IN(1%2C%20-1))%20AND%20(IdLandkreis%3D%2713003%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlTodesfall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
+                HttpTote.open('GET', url);
+                HttpTote.send();
+                HttpTote.onreadystatechange = (e) => {
+                    let amount = HttpTote.responseText;
+                    if (HttpTote.readyState == 4 && HttpTote.status == 200)
+                        try{
+                            document.getElementById('rostockStadtTote').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
+                        } catch (e){
+                            document.getElementById('rostockStadtTote').innerText = 'Keine Fälle';
+                        }
+
+                }
 ">
     <table class="stack">
         <tr style="width: 100%">
             <th style="width: 33.3%;">Ort</th>
             <th style="width: 33.3%;">Neuinfektionen</th>
-            <th style="width: 33.3%;">Tode</th>
+            <th style="width: 33.3%;">Tote</th>
         </tr>
         <tr>
             <td>Deutschland</td>
@@ -214,6 +242,11 @@
             <td>Schwalm-Eder-Kreis</td>
             <td id="schwalmNeuinfektion"></td>
             <td id="schwalmTote"></td>
+        </tr>
+        <tr>
+            <td>Rostock Kreisfreie Stadt</td>
+            <td id="rostockStadtNeuinfektionen"></td>
+            <td id="rostockStadtTote"></td>
         </tr>
     </table>
     <br>
