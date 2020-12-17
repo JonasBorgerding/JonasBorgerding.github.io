@@ -14,14 +14,29 @@
             border: 1px solid #dddddd;
             text-align: left;
             padding: 8px;
-        }
-
-        tr:nth-child(even) {
-            background-color: #dddddd;
+            color: #efefef;
         }
     </style>
 </head>
 <body onload="
+                function paintRowColor(row, inzidenz) {
+                  for (let r of row.children) {
+                      if (inzidenz < 25.0) {
+                          r.style.backgroundColor = 'rgb(255, 243, 128)';
+                          r.style.color = 'black';
+                      } else if (inzidenz < 50.0) {
+                          r.style.backgroundColor = 'rgb(255, 181, 52)';
+                      } else if (inzidenz < 100.0) {
+                          r.style.backgroundColor = 'rgb(212, 54, 36)';
+                      } else if (inzidenz < 250.0) {
+                          r.style.backgroundColor = 'rgb(149, 18, 20)';
+                      } else if (inzidenz < 500.0) {
+                          r.style.backgroundColor = 'rgb(103, 18, 18)';
+                      } else
+                          r.style.backgroundColor = 'rgb(221, 0, 133)';
+                  }
+                }
+
                 const HttpDeutschlandInfektion = new XMLHttpRequest();
                 let url='https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=[{%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22}]&resultType=standard&cacheHint=true';
                 HttpDeutschlandInfektion.open('GET', url);
@@ -46,6 +61,20 @@
                             document.getElementById('deutschlandTote').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
                         } catch (e){
                             document.getElementById('deutschlandTote').innerText = 'Keine Fälle';
+                        }
+                }
+                const HttpDeutschlandInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19_Landkreise_Table_Demo_18b5f806160a4aa686ca65819fbe4462/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=RS%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true';
+                HttpDeutschlandInzidenz.open('GET', url);
+                HttpDeutschlandInzidenz.send();
+                HttpDeutschlandInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpDeutschlandInzidenz.responseText);
+                    if (HttpDeutschlandInzidenz.readyState == 4 && HttpDeutschlandInzidenz.status == 200)
+                        try{
+                            document.getElementById('deutschlandInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowDeutschland'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('deutschlandInzidenz').innerText = 'Keine Fälle';
                         }
                 }
                 const HttpHessenInfektion = new XMLHttpRequest();
@@ -74,6 +103,20 @@
                             document.getElementById('hessenTote').innerText = 'Keine Fälle';
                         }
                 }
+                const HttpHessenInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19_Landkreise_Table_Demo_18b5f806160a4aa686ca65819fbe4462/FeatureServer/0/query?f=json&where=BL%3D%27Hessen%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=RS%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true';
+                HttpHessenInzidenz.open('GET', url);
+                HttpHessenInzidenz.send();
+                HttpHessenInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpHessenInzidenz.responseText);
+                    if (HttpHessenInzidenz.readyState == 4 && HttpHessenInzidenz.status == 200)
+                        try{
+                            document.getElementById('hessenInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowHessen'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('hessenInzidenz').innerText = 'Keine Fälle';
+                        }
+                }
                 const HttpMRInfektion = new XMLHttpRequest();
                 url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20AND%20(Bundesland%3D%27Hessen%27)%20AND%20(IdLandkreis%3D%2706534%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
                 HttpMRInfektion.open('GET', url);
@@ -98,6 +141,21 @@
                             document.getElementById('marburgTote').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
                         } catch (e){
                             document.getElementById('marburgTote').innerText = 'Keine Fälle';
+                        }
+
+                }
+                const HttpMRInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=(BL%3D%27Hessen%27)%20AND%20(OBJECTID%3D134)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=county%20asc&outSR=102100&resultOffset=0&resultRecordCount=500&resultType=standard&cacheHint=true';
+                HttpMRInzidenz.open('GET', url);
+                HttpMRInzidenz.send();
+                HttpMRInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpMRInzidenz.responseText);
+                    if (HttpMRInzidenz.readyState == 4 && HttpMRInzidenz.status == 200)
+                        try{
+                            document.getElementById('marburgInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowMarburg-Biedenkopf'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('marburgInzidenz').innerText = 'Keine Fälle';
                         }
 
                 }
@@ -128,6 +186,21 @@
                         }
 
                 }
+                const HttpVBInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=(BL%3D%27Hessen%27)%20AND%20(OBJECTID%3D135)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=county%20asc&outSR=102100&resultOffset=0&resultRecordCount=500&resultType=standard&cacheHint=true';
+                HttpVBInzidenz.open('GET', url);
+                HttpVBInzidenz.send();
+                HttpVBInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpVBInzidenz.responseText);
+                    if (HttpVBInzidenz.readyState == 4 && HttpVBInzidenz.status == 200)
+                        try{
+                            document.getElementById('vogelsbergInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowVogelsbergkreis'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('vogelsbergInzidenz').innerText = 'Keine Fälle';
+                        }
+
+                }
                 const HttpHRInfektion = new XMLHttpRequest();
                 url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20AND%20(Bundesland%3D%27Hessen%27)%20AND%20(IdLandkreis%3D%2706634%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
                 HttpHRInfektion.open('GET', url);
@@ -152,6 +225,21 @@
                             document.getElementById('schwalmTote').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
                         } catch (e){
                             document.getElementById('schwalmTote').innerText = 'Keine Fälle';
+                        }
+
+                }
+                const HttpHRInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19_Landkreise_Table_Demo_18b5f806160a4aa686ca65819fbe4462/FeatureServer/0/query?f=json&where=county%3D%27LK%20Schwalm-Eder-Kreis%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=RS%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true';
+                HttpHRInzidenz.open('GET', url);
+                HttpHRInzidenz.send();
+                HttpHRInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpHRInzidenz.responseText);
+                    if (HttpHRInzidenz.readyState == 4 && HttpHRInzidenz.status == 200)
+                        try{
+                            document.getElementById('schwalmInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowSchwalm-Eder-Kreis'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('schwalmInzidenz').innerText = 'Keine Fälle';
                         }
 
                 }
@@ -183,13 +271,13 @@
                         }
 
                 }
-                const HttpInfektionen = new XMLHttpRequest();
+                const HttpHROInfektionen = new XMLHttpRequest();
                 url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20AND%20(IdLandkreis%3D%2713003%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
-                HttpInfektionen.open('GET', url);
-                HttpInfektionen.send();
-                HttpInfektionen.onreadystatechange = (e) => {
-                    let amount = HttpInfektionen.responseText;
-                    if (HttpInfektionen.readyState == 4 && HttpInfektionen.status == 200)
+                HttpHROInfektionen.open('GET', url);
+                HttpHROInfektionen.send();
+                HttpHROInfektionen.onreadystatechange = (e) => {
+                    let amount = HttpHROInfektionen.responseText;
+                    if (HttpHROInfektionen.readyState == 4 && HttpHROInfektionen.status == 200)
                         try{
                             document.getElementById('rostockStadtNeuinfektionen').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
                         } catch (e){
@@ -197,13 +285,13 @@
                         }
 
                 }
-                const HttpTote = new XMLHttpRequest();
+                const HttpHROTote = new XMLHttpRequest();
                 url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerTodesfall%20IN(1%2C%20-1))%20AND%20(IdLandkreis%3D%2713003%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlTodesfall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
-                HttpTote.open('GET', url);
-                HttpTote.send();
-                HttpTote.onreadystatechange = (e) => {
-                    let amount = HttpTote.responseText;
-                    if (HttpTote.readyState == 4 && HttpTote.status == 200)
+                HttpHROTote.open('GET', url);
+                HttpHROTote.send();
+                HttpHROTote.onreadystatechange = (e) => {
+                    let amount = HttpHROTote.responseText;
+                    if (HttpHROTote.readyState == 4 && HttpHROTote.status == 200)
                         try{
                             document.getElementById('rostockStadtTote').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
                         } catch (e){
@@ -211,48 +299,116 @@
                         }
 
                 }
+                const HttpHROInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19_Landkreise_Table_Demo_18b5f806160a4aa686ca65819fbe4462/FeatureServer/0/query?f=json&where=county%3D%27SK%20Rostock%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=RS%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true';
+                HttpHROInzidenz.open('GET', url);
+                HttpHROInzidenz.send();
+                HttpHROInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpHROInzidenz.responseText);
+                    if (HttpHROInzidenz.readyState == 4 && HttpHROInzidenz.status == 200)
+                        try{
+                            document.getElementById('rostockStadtInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowRostockStadt'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('rostockStadtInzidenz').innerText = 'Keine Fälle';
+                        }
+
+                }
+                const HttpMecklenburgVorpommernTote = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerTodesfall%20IN(1%2C%20-1))%20AND%20(Bundesland%3D%27Mecklenburg-Vorpommern%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlTodesfall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
+                HttpMecklenburgVorpommernTote.open('GET', url);
+                HttpMecklenburgVorpommernTote.send();
+                HttpMecklenburgVorpommernTote.onreadystatechange = (e) => {
+                    let amount = HttpMecklenburgVorpommernTote.responseText;
+                    if (HttpMecklenburgVorpommernTote.readyState == 4 && HttpMecklenburgVorpommernTote.status == 200)
+                        try{
+                            document.getElementById('mecklenburgVorpommernTote').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
+                        } catch (e){
+                            document.getElementById('mecklenburgVorpommernTote').innerText = 'Keine Fälle';
+                        }
+                }
+                const HttpMecklenburgVorpommernInfektion = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19/FeatureServer/0/query?f=json&where=(NeuerFall%20IN(1%2C%20-1))%20AND%20(Bundesland%3D%27Mecklenburg-Vorpommern%27)&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22AnzahlFall%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&resultType=standard&cacheHint=true';
+                HttpMecklenburgVorpommernInfektion.open('GET', url);
+                HttpMecklenburgVorpommernInfektion.send();
+                HttpMecklenburgVorpommernInfektion.onreadystatechange = (e) => {
+                    let amount = HttpMecklenburgVorpommernInfektion.responseText;
+                    if (HttpMecklenburgVorpommernInfektion.readyState == 4 && HttpMecklenburgVorpommernInfektion.status == 200)
+                        try{
+                            document.getElementById('mecklenburgVorpommernNeuinfektion').innerText = amount.substr(amount.lastIndexOf('value')).match(/\d+/)[0];
+                        } catch (e){
+                            document.getElementById('mecklenburgVorpommernNeuinfektion').innerText = 'Keine Fälle';
+                        }
+                }
+                const HttpMecklenburgVorpommernInzidenz = new XMLHttpRequest();
+                url = 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_COVID19_Landkreise_Table_Demo_18b5f806160a4aa686ca65819fbe4462/FeatureServer/0/query?f=json&where=BL%3D%27Mecklenburg-Vorpommern%27&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=RS%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true';
+                HttpMecklenburgVorpommernInzidenz.open('GET', url);
+                HttpMecklenburgVorpommernInzidenz.send();
+                HttpMecklenburgVorpommernInzidenz.onreadystatechange = (e) => {
+                    let amount = JSON.parse(HttpMecklenburgVorpommernInzidenz.responseText);
+                    if (HttpMecklenburgVorpommernInzidenz.readyState == 4 && HttpMecklenburgVorpommernInzidenz.status == 200)
+                        try{
+                            document.getElementById('mecklenburgVorpommernInzidenz').innerText = amount.features[0].attributes.cases7_per_100k.toString();
+                            paintRowColor(document.getElementById('rowMecklenburg-Vorpommern'), amount.features[0].attributes.cases7_per_100k)
+                        } catch (e){
+                            document.getElementById('mecklenburgVorpommernInzidenz').innerText = 'Keine Fälle';
+                        }
+                }
 ">
     <table class="stack">
         <tr style="width: 100%">
-            <th style="width: 33.3%;">Ort</th>
-            <th style="width: 33.3%;">Neuinfektionen</th>
-            <th style="width: 33.3%;">Tote</th>
+            <th style="width: 25%; background-color: #212121">Ort</th>
+            <th style="width: 25%; background-color: #212121">Neuinfektionen</th>
+            <th style="width: 25%; background-color: #212121">Tote</th>
+            <th style="width: 25%; background-color: #212121">Inzidenz</th>
         </tr>
-        <tr>
+        <tr id="rowDeutschland">
             <td>Deutschland</td>
             <td id="deutschlandNeuinfektion"></td>
             <td id="deutschlandTote"></td>
+            <td id="deutschlandInzidenz"></td>
         </tr>
-        <tr>
+        <tr id="rowHessen">
             <td>Hessen</td>
             <td id="hessenNeuinfektion"></td>
             <td id="hessenTote"></td>
+            <td id="hessenInzidenz"></td>
         </tr>
-        <tr>
+        <tr id="rowMecklenburg-Vorpommern">
+            <td>Mecklenburg-Vorpommern</td>
+            <td id="mecklenburgVorpommernNeuinfektion"></td>
+            <td id="mecklenburgVorpommernTote"></td>
+            <td id="mecklenburgVorpommernInzidenz"></td>
+        </tr>
+        <tr id="rowMarburg-Biedenkopf">
             <td>Marburg-Biedenkopf</td>
             <td id="marburgNeuinfektion"></td>
             <td id="marburgTote"></td>
+            <td id="marburgInzidenz"></td>
         </tr>
-        <tr>
+        <tr id="rowVogelsbergkreis">
             <td>Vogelsbergkreis</td>
             <td id="vogelsbergNeuinfektion"></td>
             <td id="vogelsbergTote"></td>
+            <td id="vogelsbergInzidenz"></td>
         </tr>
-        <tr>
+        <tr id="rowSchwalm-Eder-Kreis">
             <td>Schwalm-Eder-Kreis</td>
             <td id="schwalmNeuinfektion"></td>
             <td id="schwalmTote"></td>
+            <td id="schwalmInzidenz"></td>
         </tr>
-        <tr>
+        <tr id="rowRostockStadt">
             <td>Rostock Kreisfreie Stadt</td>
             <td id="rostockStadtNeuinfektionen"></td>
             <td id="rostockStadtTote"></td>
+            <td id="rostockStadtInzidenz"></td>
         </tr>
     </table>
     <br>
-    <b>Gesamt Neuinfektionen Deutschland: </b><i id="deutschlandInfektionenGesamt"></i>
+    <b>Deutschland Infektionen insgesamt: </b><i id="deutschlandInfektionenGesamt"></i>
     <br>
     <br>
-    <b>Gesamt Tote Deutschland: </b><i id="deutschlandToteGesamt"></i>
+    <b>Deutschland Tote insgesamt: </b><i id="deutschlandToteGesamt"></i>
 </body>
 </html>
