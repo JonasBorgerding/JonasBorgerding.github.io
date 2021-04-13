@@ -1,6 +1,0 @@
-CACHE MANIFEST
-#Version 0.1
-
-index.html
-/scripts/main.js
-/styles/main.css
