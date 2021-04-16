@@ -122,11 +122,10 @@
                         t2.onreadystatechange = (s) => {
                             const d2 = JSON.parse(t2.responseText).features[0].attributes;
                             const newRow = dataTable.insertRow(dataTable.rows.length);
-                            newRow.id = v.attributes.county.replace(' ', '');
                             console.log(v.attributes.county.replace(' ', ''));
-                            newRow.innerHTML = '<tr id=\'row' + v.attributes.county.replace(' ', '') + '\'><td>' + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>';
+                            newRow.innerHTML = '<tr><td>' + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>';
                             //dataTable.append(`<tr id='row` + v.attributes.county.replace(' ', '') + `'><td>` + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>');
-                            paintRowColor(document.getElementById(v.attributes.county.replace(' ', '')), data.Inz7T)
+                            paintRowColor(newRow), data.Inz7T)
                         }
                     });
                 }
