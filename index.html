@@ -45,11 +45,13 @@
                     request.open('GET', url);
                     request.send();
                     request.onreadystatechange = (e) => {
-                        let data = JSON.parse(request.responseText).features[0].attributes;
-                        document.getElementById(newInfections).innerText = data.AnzFallNeu.toString();
-                        document.getElementById(newDeaths).innerText = data.AnzTodesfallNeu.toString();
-                        document.getElementById(newIncidence).innerText = data.Inz7T.toString();
-                        paintRowColor(document.getElementById(rowName), data.Inz7T)
+                        if (request.readyState === XMLHttpRequest.DONE && request.status === 2000) {
+                            let data = JSON.parse(request.responseText).features[0].attributes;
+                            document.getElementById(newInfections).innerText = data.AnzFallNeu.toString();
+                            document.getElementById(newDeaths).innerText = data.AnzTodesfallNeu.toString();
+                            document.getElementById(newIncidence).innerText = data.Inz7T.toString();
+                            paintRowColor(document.getElementById(rowName), data.Inz7T)
+                        }
                     }
                 }
 
@@ -120,12 +122,14 @@
                         t2.open('GET', 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/rki_key_data_v/FeatureServer/0/query?f=json&where=(BundeslandId%3D' + v.attributes.BL_ID + ')%20AND%20(AdmUnitId%3D' + v.attributes.AdmUnitId +')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=AdmUnitId%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true')
                         t2.send();
                         t2.onreadystatechange = (s) => {
-                            const d2 = JSON.parse(t2.responseText).features[0].attributes;
-                            const newRow = dataTable.insertRow(dataTable.rows.length);
-                            console.log(v.attributes.county.replace(' ', ''));
-                            newRow.innerHTML = '<tr><td>' + v.attributes.county + '</td><td>' + d2.AnzFallNeu + '</td><td>' + d2.AnzTodesfallNeu + '</td><td>' + d2.Inz7T + '</td></tr>';
-                            //dataTable.append(`<tr id='row` + v.attributes.county.replace(' ', '') + `'><td>` + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>');
-                            paintRowColor(newRow, parseInt(data.Inz7T))
+                            if (t2.readyState === XMLHttpRequest.DONE && t2.status === 2000) {
+                                const d2 = JSON.parse(t2.responseText).features[0].attributes;
+                                const newRow = dataTable.insertRow(dataTable.rows.length);
+                                console.log(v.attributes.county.replace(' ', ''));
+                                newRow.innerHTML = '<tr><td>' + v.attributes.county + '</td><td>' + d2.AnzFallNeu + '</td><td>' + d2.AnzTodesfallNeu + '</td><td>' + d2.Inz7T + '</td></tr>';
+                                //dataTable.append(`<tr id='row` + v.attributes.county.replace(' ', '') + `'><td>` + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>');
+                                paintRowColor(newRow, parseInt(data.Inz7T))
+                            }
                         }
                     });
                 }
