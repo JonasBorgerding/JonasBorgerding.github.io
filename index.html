@@ -125,7 +125,7 @@
                             console.log(v.attributes.county.replace(' ', ''));
                             newRow.innerHTML = '<tr><td>' + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>';
                             //dataTable.append(`<tr id='row` + v.attributes.county.replace(' ', '') + `'><td>` + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>');
-                            paintRowColor(newRow), data.Inz7T)
+                            paintRowColor(newRow, data.Inz7T)
                         }
                     });
                 }
