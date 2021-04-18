@@ -40,12 +40,15 @@
                   }
                 }
 
+                var data = [];
+                var sortedData = [];
+
                 function fetchDataAndWriteInTable(url, newInfections, newDeaths, newIncidence, rowName) {
                     const request = new XMLHttpRequest();
                     request.open('GET', url);
                     request.send();
                     request.onreadystatechange = (e) => {
-                        if (request.readyState === XMLHttpRequest.DONE && request.status === 2000) {
+                        if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
                             let data = JSON.parse(request.responseText).features[0].attributes;
                             document.getElementById(newInfections).innerText = data.AnzFallNeu.toString();
                             document.getElementById(newDeaths).innerText = data.AnzTodesfallNeu.toString();
@@ -105,42 +108,49 @@
                         newIncidence: 'schwalmInzidenz',
                         rowName: 'rowSchwalm-Eder-Kreis'
                     },
-
                 ].forEach(
                     val => 
                         fetchDataAndWriteInTable(val.url, val.newInfections, val.newDeaths, val.newIncidence, val.rowName)
                     );
                 
-                const dataTable = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
                 const test = new XMLHttpRequest();
                 test.open('GET', 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=cases7_per_100k%20desc&outSR=102100&resultOffset=0&resultRecordCount=500&resultType=standard&cacheHint=true');
                 test.send();
                 test.onreadystatechange = (e) => {
-                    const d = JSON.parse(test.responseText).features;
-                    d.forEach(v => {
-                        const t2 = new XMLHttpRequest();
-                        t2.open('GET', 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/rki_key_data_v/FeatureServer/0/query?f=json&where=(BundeslandId%3D' + v.attributes.BL_ID + ')%20AND%20(AdmUnitId%3D' + v.attributes.AdmUnitId +')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=AdmUnitId%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true')
-                        t2.send();
-                        t2.onreadystatechange = (s) => {
-                            if (t2.readyState === XMLHttpRequest.DONE && t2.status === 2000) {
-                                const d2 = JSON.parse(t2.responseText).features[0].attributes;
-                                const newRow = dataTable.insertRow(dataTable.rows.length);
-                                console.log(v.attributes.county.replace(' ', ''));
-                                newRow.innerHTML = '<tr><td>' + v.attributes.county + '</td><td>' + d2.AnzFallNeu + '</td><td>' + d2.AnzTodesfallNeu + '</td><td>' + d2.Inz7T + '</td></tr>';
-                                //dataTable.append(`<tr id='row` + v.attributes.county.replace(' ', '') + `'><td>` + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>');
-                                paintRowColor(newRow, parseInt(data.Inz7T))
+                    if (test.readyState == XMLHttpRequest.DONE && test.status == 200) {
+                        dataTableHeader.children[0].children[0].innerText = 'Ort (asc)'
+
+                        const d = JSON.parse(test.responseText).features;
+                        d.forEach(v => {
+                            const t2 = new XMLHttpRequest();
+                            t2.open('GET', 'https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/rki_key_data_v/FeatureServer/0/query?f=json&where=(BundeslandId%3D' + v.attributes.BL_ID + ')%20AND%20(AdmUnitId%3D' + v.attributes.AdmUnitId +')&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=AdmUnitId%20asc&resultOffset=0&resultRecordCount=1&resultType=standard&cacheHint=true')
+                            t2.send();
+                            t2.onreadystatechange = (s) => {
+                                if (t2.readyState === XMLHttpRequest.DONE && t2.status === 200) {
+                                    const d2 = JSON.parse(t2.responseText).features[0].attributes;
+                                    const newRow = dataTableBody.insertRow(dataTableBody.rows.length);
+                                    newRow.id = v.attributes.county.substr(3);
+                                    newRow.innerHTML = '<tr><td>' + v.attributes.county.substr(3) + '</td><td>' + d2.AnzFallNeu + '</td><td>' + d2.AnzTodesfallNeu + '</td><td>' + d2.Inz7T + '</td></tr>';
+                                    //dataTableBody.append(`<tr id='row` + v.attributes.county.replace(' ', '') + `'><td>` + v.attributes.county + '></td><td>' + d2.AnzFallNeu + '></td><td>' + d2.AnzTodesfallNeu + '></td><td>' + d2.Inz7T + '></td></tr>');
+                                    paintRowColor(newRow, d2.Inz7T)
+                                    data.push(newRow);
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
 ">
     <table class="stack" id="dataTable">
-        <tr style="width: 100%">
-            <th style="width: 25%; background-color: #212121">Ort</th>
-            <th style="width: 25%; background-color: #212121">Neuinfektionen</th>
-            <th style="width: 25%; background-color: #212121">Tote</th>
-            <th style="width: 25%; background-color: #212121">Inzidenz</th>
-        </tr>
+        <thead>
+            <tr style="width: 100%">
+                <th style="width: 25%; background-color: #212121" onclick="sort(0)">Ort</th>
+                <th style="width: 25%; background-color: #212121" onclick="sort(1)">Neuinfektionen</th>
+                <th style="width: 25%; background-color: #212121" onclick="sort(2)">Tote</th>
+                <th style="width: 25%; background-color: #212121" onclick="sort(3)">Inzidenz</th>
+            </tr>
+        </thead>
+        <tbody>
+        </thead>
         <tr id="rowDeutschland">
             <td>Deutschland</td>
             <td id="deutschlandNeuinfektion"></td>
@@ -189,5 +199,64 @@
     <br>
     <br>
     <b>Deutschland Tote insgesamt: </b><i id="deutschlandToteGesamt"></i>
+
+    <script>
+        const dataTableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        const dataTableHeader = document.getElementById('dataTable').getElementsByTagName('thead')[0];
+
+        var lastSort = -1;
+        var lastSortName = "";
+        var asc = false;
+
+        function sort(col) {
+            if (col === lastSort) {
+                if (asc === true) {
+                    dataTableHeader.children[0].children[col].innerText = lastSortName + " (desc)"
+                    asc = false;
+                    Array.prototype.slice.call(dataTableBody.rows).sort((a, b) => {
+                    if (col > 0) {
+                        return parseFloat(b.children[col].innerText) - parseFloat(a.children[col].innerText);
+                    }
+                    return a.children[col].innerText.localeCompare(b.children[col].innerText)*-1;
+                    }).forEach(e => {
+                            dataTableBody.removeChild(e);
+                            dataTableBody.appendChild(e);
+                        }
+                    );
+                } else {
+                    dataTableHeader.children[0].children[col].innerText = lastSortName + " (asc)";
+                    asc = true;
+                    Array.prototype.slice.call(dataTableBody.rows).sort((a, b) => {
+                    if (col > 0) {
+                        return parseFloat(a.children[col].innerText) - parseFloat(b.children[col].innerText);
+                    }
+                    return a.children[col].innerText.localeCompare(b.children[col].innerText);
+                    }).forEach(e => {
+                            dataTableBody.removeChild(e);
+                            dataTableBody.appendChild(e);
+                        }
+                    );
+                }
+            }
+            else {
+                if (lastSortName != "")
+                    dataTableHeader.children[0].children[lastSort].innerText = lastSortName;
+                lastSort = col;
+                asc = true;
+                lastSortName = dataTableHeader.children[0].children[col].innerText;
+                dataTableHeader.children[0].children[col].innerText = lastSortName + " (asc)";
+                Array.prototype.slice.call(dataTableBody.rows).sort((a, b) => {
+                if (col > 0) {
+                    return parseFloat(a.children[col].innerText) - parseFloat(b.children[col].innerText);
+                }
+                return a.children[col].innerText.localeCompare(b.children[col].innerText);
+                }).forEach(e => {
+                        dataTableBody.removeChild(e);
+                        dataTableBody.appendChild(e);
+                    }
+                );
+            }
+        }
+    </script>
 </body>
 </html>
